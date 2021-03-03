@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/alexcesaro/log"
-	"github.com/alexcesaro/log/golog"
 	"io"
 	"io/ioutil"
 	"net"
@@ -18,6 +16,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/alexcesaro/log"
+	"github.com/alexcesaro/log/golog"
 )
 
 var ICINGA_SERVER = "default"
@@ -77,7 +78,7 @@ func main() {
 
 func printConfigToLog() {
 	if logger != nil {
-		if (logger.LogDebug()) {
+		if logger.LogDebug() {
 			logger.Debug("Config:")
 			for k, v := range configParameters {
 				if strings.Contains(k, "password") {
@@ -111,7 +112,7 @@ func readConfigFile(file io.Reader) {
 	}
 }
 
-func readConfigurationFileFromOECConfig(filepath string) (error) {
+func readConfigurationFileFromOECConfig(filepath string) error {
 
 	jsonFile, err := os.Open(filepath)
 
@@ -233,7 +234,6 @@ func http_post() {
 	apiUrl := configParameters["opsgenie.api.url"] + "/v1/json/icinga2"
 	target := "OpsGenie"
 
-
 	if logger != nil {
 		logger.Debug("URL: ", apiUrl)
 		logger.Debug("Data to be posted:")
@@ -292,6 +292,7 @@ func parseFlags() map[string]string {
 	icingaServer := flag.String("is", "", "icinga server")
 
 	entityType := flag.String("entityType", "", "")
+	priority := flag.String("priority", "", "")
 
 	notificationType := flag.String("t", "", "NOTIFICATIONTYPE")
 	longDateTime := flag.String("ldt", "", "LONGDATETIME")
@@ -348,7 +349,7 @@ func parseFlags() map[string]string {
 	if *apiKey != "" {
 		parameters["apiKey"] = *apiKey
 	} else {
-		parameters["apiKey"] = configParameters ["apiKey"]
+		parameters["apiKey"] = configParameters["apiKey"]
 	}
 	if *icingaServer != "" {
 		parameters["icinga_server"] = *icingaServer
@@ -359,13 +360,13 @@ func parseFlags() map[string]string {
 	if *responders != "" {
 		parameters["responders"] = *responders
 	} else {
-		parameters["responders"] = configParameters ["responders"]
+		parameters["responders"] = configParameters["responders"]
 	}
 
 	if *tags != "" {
 		parameters["tags"] = *tags
 	} else {
-		parameters["tags"] = configParameters ["tags"]
+		parameters["tags"] = configParameters["tags"]
 	}
 
 	if *logPath != "" {
@@ -375,6 +376,10 @@ func parseFlags() map[string]string {
 	}
 
 	parameters["entity_type"] = *entityType
+
+	if len(*priority) > 0 {
+		parameters["priority"] = *priority
+	}
 
 	parameters["notification_type"] = *notificationType
 	parameters["long_date_time"] = *longDateTime
@@ -424,7 +429,7 @@ func parseFlags() map[string]string {
 
 	args := flag.Args()
 	for i := 0; i < len(args); i += 2 {
-		if (len(args)%2 != 0 && i == len(args)-1) {
+		if len(args)%2 != 0 && i == len(args)-1 {
 			parameters[args[i]] = ""
 		} else {
 			parameters[args[i]] = args[i+1]
